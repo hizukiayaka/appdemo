@@ -5,34 +5,19 @@
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkGrid">
+      <object class="GtkGrid" id="grid0">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="hexpand">False</property>
         <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkEventBox" id="videoarea">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="hexpand">True</property>
-            <property name="vexpand">True</property>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButtonBox" id="buttonbox">
+          <object class="GtkButtonBox" id="buttonbox0">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="layout_style">center</property>
             <child>
-              <object class="GtkButton" id="button_playing">
+              <object class="GtkButton" id="button_playing0">
                 <property name="label" translatable="yes">PLAYING</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -45,7 +30,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_paused">
+              <object class="GtkButton" id="button_paused0">
                 <property name="label" translatable="yes">PAUSED</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -58,7 +43,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_ready">
+              <object class="GtkButton" id="button_ready0">
                 <property name="label" translatable="yes">READY</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -71,7 +56,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button_null">
+              <object class="GtkButton" id="button_null0">
                 <property name="label" translatable="yes">NULL</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -87,21 +72,6 @@
           <packing>
             <property name="left_attach">0</property>
             <property name="top_attach">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEventBox" id="videoarea1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="hexpand">True</property>
-            <property name="vexpand">True</property>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
           </packing>
         </child>
         <child>
@@ -166,6 +136,12 @@
             <property name="left_attach">0</property>
             <property name="top_attach">3</property>
           </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+        <child>
+          <placeholder/>
         </child>
       </object>
     </child>
