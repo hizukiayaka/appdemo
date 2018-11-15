@@ -21,20 +21,48 @@
 #  SOFTWARE.
 #
 
-bin_PROGRAMS = multiwayland
+bin_PROGRAMS = multishow
 
-multiwayland_CFLAGS = \
+multishow_SOURCES = \
+	multiwayland.c \
+	$(NULL)
+
+multishow_CFLAGS = \
 	-O0 -g \
 	-Wall -Wextra \
 	-std=c99 \
+	-DDATADIR=\""$(multishow_datadir)"\" \
 	$(GST_CFLAGS) \
 	$(GST_BAD_VIDOE_CFLAGS) \
 	$(GTK3_CFLAGS) \
 	$(NULL)
 
-multiwayland_LDADD = \
+multishow_LDADD = \
 	$(GST_LIBS) \
 	$(GST_BAD_VIDOE_LIBS) \
 	$(GTK3_LIBS) \
 	-lgstwayland-1.0 \
+	$(NULL)
+
+BUILT_SOURCES =			\
+	multishow-resources.h	\
+	multishow-resources.c	\
+	multishow.gresource     \
+	$(NULL)
+
+resource_files = $(shell glib-compile-resources --sourcedir=$(srcdir) \
+--generate-dependencies $(srcdir)/multishow.gresource.xml)
+
+multishow.gresource: multishow.gresource.xml $(resource_files)
+	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate $<
+multishow-resources.c: multishow.gresource.xml $(resource_files)
+	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-source --c-name multishow $<
+multishow-resources.h: multishow.gresource.xml $(resource_files)
+	$(AM_V_GEN) glib-compile-resources --target=$@ --sourcedir=$(srcdir) --generate-header --c-name multishow $<
+
+multishow_datadir = ${datarootdir}/${PACKAGE}
+dist_multishow_data_DATA = multishow.gresource
+
+EXTRA_DIST = \
+	multishow.gresource.xml \
 	$(NULL)

@@ -1,1 +1,4 @@
-/multiwayland
+/multishow
+/multishow-resources.h
+/multishow-resources.c
+/multishow.gresource
