@@ -250,6 +250,28 @@ add_a_player_to_app (gpointer uri, gpointer app)
   }
 }
 
+static gboolean
+key_pressed_event (GtkWidget *widget,
+		   GdkEvent *event,
+		   gpointer user_data)
+{
+  DemoApp *d = (DemoApp *)user_data;
+  guint keyval;
+
+  gdk_event_get_keyval (event, &keyval);
+
+  switch (keyval) {
+  case GDK_KEY_X:
+  case GDK_KEY_x:
+    gtk_main_quit ();
+    break;
+  default:
+    break;
+  }
+
+  return TRUE;
+}
+
 static void
 build_window (DemoApp * d)
 {
@@ -258,9 +280,8 @@ build_window (DemoApp * d)
   builder =
       gtk_builder_new_from_resource ("/com/rock-chips/multishow/window.ui");
 
-  gtk_window_fullscreen (GTK_WINDOW (gtk_builder_get_object (builder,
-              "window")));
   d->app_widget = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
+  gtk_window_fullscreen (GTK_WINDOW (d->app_widget));
   g_object_ref (d->app_widget);
   g_signal_connect (d->app_widget, "destroy", G_CALLBACK (gtk_main_quit), NULL);
 
@@ -269,6 +290,9 @@ build_window (DemoApp * d)
   d->grid_top = 0;
 
   g_list_foreach (d->playlist, add_a_player_to_app, d);
+
+  g_signal_connect (GTK_WINDOW (d->app_widget), "key-press-event",
+		    G_CALLBACK (key_pressed_event), d);
 
   gtk_widget_show_all (d->app_widget);
 
@@ -288,7 +312,7 @@ remove_a_player (gpointer data, gpointer user_data)
   gst_object_unref (bus);
 
   gst_object_unref (d->pipeline);
-  g_object_unref (d->video_widget);
+  gtk_widget_destroy (d->video_widget);
   g_object_unref (d->buttonbox);
 }
 
