@@ -42,6 +42,7 @@ typedef struct _PlayerData
 
 typedef struct
 {
+  GResource *resource;
   GtkWidget *app_widget;
   GtkGrid *grid;
   GList *players;
@@ -246,12 +247,8 @@ build_window (DemoApp * d)
   GtkWidget *button;
   GError *error = NULL;
 
-  builder = gtk_builder_new ();
-  if (!gtk_builder_add_from_file (builder, "window.ui", &error)) {
-    g_error ("Failed to load window.ui: %s", error->message);
-    g_error_free (error);
-    goto exit;
-  }
+  builder =
+      gtk_builder_new_from_resource ("/com/rock-chips/multishow/window.ui");
 
   gtk_window_fullscreen (GTK_WINDOW (gtk_builder_get_object (builder,
               "window")));
@@ -355,6 +352,8 @@ main (int argc, char **argv)
   GError *error = NULL;
   gchar *uri = NULL;
   gchar *path = NULL;
+  gchar *bundle_file = NULL;
+  GResource *res = NULL;
 
   GOptionEntry entries[] = {
     {"uri", '\0', 0, G_OPTION_ARG_STRING, &uri, "video source URI", NULL},
@@ -380,6 +379,17 @@ main (int argc, char **argv)
     return 1;
   }
 
+
+  bundle_file = g_build_filename (DATADIR, "multishow.gresource", NULL);
+  res = g_resource_load (bundle_file, &error);
+  if (!res) {
+    g_error ("Failed to load resource bundle: %s", error->message);
+    g_error_free (error);
+    goto exit;
+  }
+  g_clear_pointer (&bundle_file, g_free);
+  g_resources_register (res);
+
   d = g_slice_new0 (DemoApp);
 
   if (uri == NULL) {
@@ -394,6 +404,12 @@ main (int argc, char **argv)
   clean_up (d);
 
   g_slice_free (DemoApp, d);
+  g_resources_unregister (res);
+  g_resource_unref (res);
 
+exit:
+  g_free (bundle_file);
+  g_free (path);
+  g_free (uri);
   return 0;
 }
