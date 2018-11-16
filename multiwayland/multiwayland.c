@@ -34,6 +34,7 @@
 typedef struct _PlayerData
 {
   GtkWidget *video_widget;
+  GtkWidget *buttonbox;
 
   GstElement *pipeline;
   GstVideoOverlay *overlay;
@@ -49,7 +50,6 @@ typedef struct
 
   gint grid_left;
   gint grid_top;
-  gint current_uri;             /* index for argv */
   GList *playlist;
 } DemoApp;
 
@@ -183,8 +183,9 @@ static PlayerData *
 create_new_player (gchar * uri)
 {
   PlayerData *d = NULL;
-  GError *error = NULL;
   GstBus *bus;
+  GtkBuilder *builder;
+  GtkWidget *button;
 
   d = g_slice_new0 (PlayerData);
 
@@ -202,7 +203,9 @@ create_new_player (gchar * uri)
   g_signal_connect (d->video_widget, "draw",
       G_CALLBACK (video_widget_draw_cb), d);
 
-#if 0
+  builder =
+      gtk_builder_new_from_resource ("/com/rock-chips/multishow/buttons.ui");
+
   button = GTK_WIDGET (gtk_builder_get_object (builder, "button_playing"));
   g_signal_connect (button, "clicked", G_CALLBACK (playing_clicked_cb), d);
 
@@ -214,7 +217,12 @@ create_new_player (gchar * uri)
 
   button = GTK_WIDGET (gtk_builder_get_object (builder, "button_null"));
   g_signal_connect (button, "clicked", G_CALLBACK (null_clicked_cb), d);
-#endif
+
+  d->buttonbox =
+      GTK_WIDGET (g_object_ref (gtk_builder_get_object (builder, "buttonbox")));
+
+  g_object_unref (builder);
+
   bus = gst_pipeline_get_bus (GST_PIPELINE (d->pipeline));
   gst_bus_add_signal_watch (bus);
   g_signal_connect (bus, "message::error", G_CALLBACK (error_cb), d);
@@ -234,6 +242,8 @@ add_a_player_to_app (gpointer uri, gpointer app)
   if (pd) {
     gtk_grid_attach (d->grid, pd->video_widget, d->grid_left, d->grid_top,
         1, 1);
+    gtk_grid_attach (d->grid, pd->buttonbox, d->grid_left, d->grid_top + 1,
+        1, 1);
     gst_element_set_state (pd->pipeline, GST_STATE_PLAYING);
     d->players = g_list_prepend (d->players, pd);
     d->grid_top += 2;
@@ -244,8 +254,6 @@ static void
 build_window (DemoApp * d)
 {
   GtkBuilder *builder;
-  GtkWidget *button;
-  GError *error = NULL;
 
   builder =
       gtk_builder_new_from_resource ("/com/rock-chips/multishow/window.ui");
@@ -264,7 +272,6 @@ build_window (DemoApp * d)
 
   gtk_widget_show_all (d->app_widget);
 
-exit:
   g_object_unref (builder);
 }
 
@@ -282,6 +289,7 @@ remove_a_player (gpointer data, gpointer user_data)
 
   gst_object_unref (d->pipeline);
   g_object_unref (d->video_widget);
+  g_object_unref (d->buttonbox);
 }
 
 static void
@@ -304,12 +312,18 @@ parse_video_path (DemoApp * data, gchar * path)
     gchar *uri = NULL;
     GDir *dir = g_dir_open (path, 0, &err);
     GList *first = NULL, *last = NULL;
+
     if (err) {
       g_print ("Error open dir %s: %s\n", path, err->message);
       return FALSE;
     }
+
     do {
       file = g_dir_read_name (dir);
+      /* there are no more entries */
+      if (!file)
+	break;
+
       uri = g_strdup_printf ("%s/%s", path, file);
       if (g_file_test (uri, G_FILE_TEST_EXISTS)) {
         g_free (uri);
@@ -321,6 +335,7 @@ parse_video_path (DemoApp * data, gchar * path)
         break;
       }
     } while (file);
+
     last = data->playlist;
     data->playlist = g_list_reverse (data->playlist);
     /* NOTE: After it is connected, many functions won't work */
@@ -343,7 +358,6 @@ parse_video_path (DemoApp * data, gchar * path)
   return FALSE;
 }
 
-
 int
 main (int argc, char **argv)
 {
@@ -362,7 +376,6 @@ main (int argc, char **argv)
     {NULL}
   };
 
-
   gtk_init (&argc, &argv);
   gst_init (&argc, &argv);
 
@@ -378,7 +391,6 @@ main (int argc, char **argv)
     g_printerr ("Usage: %s <pipeline spec>\n", argv[0]);
     return 1;
   }
-
 
   bundle_file = g_build_filename (DATADIR, "multishow.gresource", NULL);
   res = g_resource_load (bundle_file, &error);

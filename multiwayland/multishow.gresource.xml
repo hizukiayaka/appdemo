@@ -2,5 +2,6 @@
 <gresources>
   <gresource prefix="/com/rock-chips/multishow">
      <file compressed="true">window.ui</file>
+     <file compressed="true">buttons.ui</file>
   </gresource>
 </gresources>
