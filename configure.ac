@@ -35,6 +35,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # Obtain compiler/linker options for depedencies
 # Check for gst and enable cube-video conditionally:
+PKG_CHECK_MODULES(GIO, gio-2.0 gio-unix-2.0)
 PKG_CHECK_MODULES(GST, gstreamer-1.0 >= 1.6.0
 		  gstreamer-plugins-base-1.0 >= 1.6.0
 		  gstreamer-app-1.0 >= 1.6.0
@@ -48,6 +49,7 @@ PKG_CHECK_MODULES(GST_BAD_VIDOE, gstreamer-bad-video-1.0 >= 1.10.0,
 PKG_CHECK_MODULES(GTK3, gtk+-3.0 >= 3.4, HAVE_GTK3=yes, HAVE_GTK3=no)
 
 AC_CONFIG_FILES([Makefile
+audioservice/Makefile
 multiwayland/Makefile
 ])
 AC_OUTPUT

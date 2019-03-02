@@ -21,4 +21,4 @@
 #  SOFTWARE.
 #
 
-SUBDIRS = multiwayland
+SUBDIRS = audioservice multiwayland
