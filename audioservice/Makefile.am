@@ -25,6 +25,7 @@ bin_PROGRAMS = audioservice
 
 audioservice_SOURCES = \
 	audio_service.c \
+	control.c \
 	$(NULL)
 
 audioservice_CFLAGS = \
@@ -33,9 +34,11 @@ audioservice_CFLAGS = \
 	-std=c99 \
 	$(GST_CFLAGS) \
 	$(GST_BAD_VIDOE_CFLAGS) \
+	$(GIO_CFLAGS)           \
 	$(NULL)
 
 audioservice_LDADD = \
 	$(GST_LIBS) \
 	$(GST_BAD_VIDOE_LIBS) \
+	$(GIO_LIBS)           \
 	$(NULL)

@@ -9,9 +9,13 @@
 #include <gst/gstmemory.h>
 #include <gst/gstpad.h>
 
+#include "control.h"
+
 #define MAX_INSTANCE_NUM (4)
 
 GST_DEBUG_CATEGORY (rk_audioservice_debug);
+
+static struct controller *ctrl = NULL;
 
 inline static const char *
 yesno (int yes)
@@ -52,6 +56,9 @@ bus_watch_cb (GstBus * bus, GstMessage * msg, gpointer user_data)
 
       /* TODO: inform the control thread */
       if (cur_gst_state == GST_STATE_PLAYING) {
+        gchar *ctrl_msg = NULL;
+	ctrl_msg = g_strdup_printf ("%d: PLaying", dec->index);
+	rk_unix_ctrl_push_data (ctrl, ctrl_msg);
       }
 
       break;
@@ -71,9 +78,13 @@ bus_watch_cb (GstBus * bus, GstMessage * msg, gpointer user_data)
       gst_bin_recalculate_latency (GST_BIN (dec->pipeline));
       break;
     }
-    case GST_MESSAGE_EOS:
-      /* TODO: inform the control thread */
+    case GST_MESSAGE_EOS: {
+      gchar *ctrl_msg = NULL;
+
+      ctrl_msg = g_strdup_printf ("%d: EOS", dec->index);
+      rk_unix_ctrl_push_data (ctrl, ctrl_msg);
       break;
+    }
 
     case GST_MESSAGE_INFO:
     case GST_MESSAGE_WARNING:
@@ -150,10 +161,26 @@ static struct decoder *create_audio_inst()
   return dec;
 }
 
+void
+rk_media_inst_play_url (gpointer data, char *uri)
+{
+  struct decoder *dec = data;
+
+  if (!data || !uri)
+    return;
+
+  gst_element_set_state (dec->pipeline, GST_STATE_NULL);
+
+  g_object_set (G_OBJECT (dec->pipeline), "uri", uri, NULL);
+  gst_element_set_state (dec->pipeline, GST_STATE_PLAYING);
+}
 
 static void
 audio_inst_clean (struct decoder *dec)
 {
+  if (!dec->pipeline)
+	  return;
+
   gst_element_set_state (dec->pipeline, GST_STATE_NULL);
 
   gst_object_unref (dec->pipeline);
@@ -237,6 +264,9 @@ main (gint argc, gchar * argv[])
     return 1;
   }
 
+  if (!unix_socket_path)
+    unix_socket_path = RK_DEAFAULT_UNIX_SOCKET;
+
   if (!foreground)
     daemonize ();
 
@@ -247,6 +277,10 @@ main (gint argc, gchar * argv[])
 
     decs[i]->index = i;
   }
+
+  ctrl = rk_new_unix_ctrl(unix_socket_path, decs, MAX_INSTANCE_NUM);
+  if (!ctrl)
+    goto dec_init_error;
   
   loop = g_main_loop_new (NULL, FALSE);
   g_unix_signal_add (SIGINT, termination_sig_handler, loop);
@@ -256,6 +290,8 @@ main (gint argc, gchar * argv[])
 
   for (gint i = MAX_INSTANCE_NUM - 1; i >= 0; i--)
     audio_inst_clean (decs[i]);
+
+  rk_destroy_unix_ctrl (ctrl);
 
   return 0;
 
